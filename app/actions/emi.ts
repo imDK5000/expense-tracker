@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { resolveLenderDomain } from '@/lib/lenders'
 
 export type CreateEMIData = {
   name: string
@@ -11,6 +12,7 @@ export type CreateEMIData = {
   tenure_months: number
   interest_rate?: number
   notes?: string
+  lender_name?: string
 }
 
 export type UpdateEMIData = Partial<CreateEMIData> & { id: string }
@@ -23,9 +25,15 @@ export async function createEMI(data: CreateEMIData) {
     throw new Error('Unauthorized')
   }
 
+  // Resolve lender domain at creation time so we don't re-resolve on every render
+  const lender_logo_domain = data.lender_name
+    ? resolveLenderDomain(data.lender_name)
+    : null
+
   const { error } = await supabase.from('emis').insert({
     ...data,
-    user_id: user.id
+    user_id: user.id,
+    lender_logo_domain: lender_logo_domain ?? undefined,
   })
 
   if (error) {
@@ -66,9 +74,14 @@ export async function updateEMI(data: UpdateEMIData) {
 
   const { id, ...updateFields } = data
 
+  // Re-resolve domain if lender_name is being updated
+  const lender_logo_domain = updateFields.lender_name !== undefined
+    ? (resolveLenderDomain(updateFields.lender_name ?? '') ?? undefined)
+    : undefined
+
   const { error } = await supabase
     .from('emis')
-    .update(updateFields)
+    .update({ ...updateFields, ...(lender_logo_domain !== undefined ? { lender_logo_domain } : {}) })
     .eq('id', id)
     .eq('user_id', user.id)
 

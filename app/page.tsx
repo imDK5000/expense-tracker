@@ -17,38 +17,45 @@ export default async function Home() {
     redirect('/login')
   }
 
-  // Fetch both concurrently
   const [emis, expenses] = await Promise.all([
     getEMIs(),
     getExpenses()
   ])
 
   return (
-    <main className="container mx-auto p-4 md:p-8 space-y-12 max-w-5xl">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-6">
+    <main className="container mx-auto p-4 md:p-8 space-y-10 max-w-5xl">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/8 pb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Expense Tracker</h1>
-          <p className="text-muted-foreground">Manage your EMIs and Expenses</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            <span className="copper-text">Expense</span>{" "}
+            <span className="text-foreground">Tracker</span>
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">Manage your EMIs and expenses</p>
         </div>
       </div>
-      
+
+      {/* Summary */}
       <DashboardSummary emis={emis as any[]} expenses={expenses as any[]} />
 
+      {/* Timeline */}
       <section>
         <EmiTimeline emis={emis as any[]} />
       </section>
 
+      {/* EMIs */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Your EMIs</h2>
+          <h2 className="text-lg font-semibold text-foreground">Your EMIs</h2>
           <EMIModal />
         </div>
         <EMIList emis={emis as any[]} />
       </section>
 
+      {/* Expenses */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Your Expenses</h2>
+          <h2 className="text-lg font-semibold text-foreground">Your Expenses</h2>
           <ExpenseModal />
         </div>
         <ExpenseList expenses={expenses as any[]} />
