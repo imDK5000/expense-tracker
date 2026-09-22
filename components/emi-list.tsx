@@ -1,5 +1,5 @@
 import { formatINR } from "@/lib/format"
-import { getFaviconUrl, getLenderInitials } from "@/lib/lenders"
+import { LenderAvatar } from "@/components/lender-avatar"
 
 type EMI = {
   id: string
@@ -24,38 +24,6 @@ function calculateEndDateAndStatus(startDateStr: string, tenureMonths: number) {
   return { endDate: endDate.toISOString().split('T')[0], status }
 }
 
-function LenderAvatar({ lender_name, lender_logo_domain }: { lender_name?: string | null; lender_logo_domain?: string | null }) {
-  if (lender_logo_domain) {
-    return (
-      <img
-        src={getFaviconUrl(lender_logo_domain)}
-        alt={lender_name ?? "Lender"}
-        width={32}
-        height={32}
-        className="rounded-lg object-contain bg-white/10 p-0.5 shrink-0"
-        onError={(e) => {
-          // fallback to initials if favicon fails
-          const target = e.currentTarget
-          target.style.display = 'none'
-          const sibling = target.nextElementSibling as HTMLElement | null
-          if (sibling) sibling.style.display = 'flex'
-        }}
-      />
-    )
-  }
-  if (lender_name) {
-    const initials = getLenderInitials(lender_name)
-    return (
-      <div
-        className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
-        style={{ background: 'rgba(255, 118, 64, 0.18)', color: '#ff7640' }}
-      >
-        {initials}
-      </div>
-    )
-  }
-  return null
-}
 
 export function EMIList({ emis }: { emis: EMI[] }) {
   if (!emis || emis.length === 0) {
