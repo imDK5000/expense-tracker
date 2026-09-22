@@ -2,12 +2,15 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { resolveLenderDomain } from '@/lib/lenders'
 
 export type CreateExpenseData = {
   description: string
   amount: number
   category?: string
-  date: string // YYYY-MM-DD format
+  date?: string | null
+  vendor_name?: string | null
+  vendor_logo_domain?: string | null
 }
 
 export type UpdateExpenseData = Partial<CreateExpenseData> & { id: string }
@@ -20,9 +23,15 @@ export async function createExpense(data: CreateExpenseData) {
     throw new Error('Unauthorized')
   }
 
+  // Resolve vendor domain at creation time
+  const vendor_logo_domain = data.vendor_name
+    ? resolveLenderDomain(data.vendor_name)
+    : null
+
   const { error } = await supabase.from('expenses').insert({
     ...data,
-    user_id: user.id
+    user_id: user.id,
+    vendor_logo_domain: vendor_logo_domain ?? undefined,
   })
 
   if (error) {
@@ -64,9 +73,14 @@ export async function updateExpense(data: UpdateExpenseData) {
 
   const { id, ...updateFields } = data
 
+  // Re-resolve domain if vendor_name is being updated
+  const vendor_logo_domain = updateFields.vendor_name !== undefined
+    ? (resolveLenderDomain(updateFields.vendor_name ?? '') ?? undefined)
+    : undefined
+
   const { error } = await supabase
     .from('expenses')
-    .update(updateFields)
+    .update({ ...updateFields, ...(vendor_logo_domain !== undefined ? { vendor_logo_domain } : {}) })
     .eq('id', id)
     .eq('user_id', user.id)
 

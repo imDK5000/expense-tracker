@@ -10,8 +10,8 @@ type EMI = {
 
 const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-// Show a tick every N months. 3 = quarterly (Jan/Apr/Jul/Oct) — readable at any width.
-const TICK_INTERVAL = 3
+// Show every month
+const TICK_INTERVAL = 1
 
 export function EmiTimeline({ emis }: { emis: EMI[] }) {
   if (!emis || emis.length === 0) return null
@@ -74,7 +74,7 @@ export function EmiTimeline({ emis }: { emis: EMI[] }) {
                 {/* Year label — only when crossing into a new year */}
                 {isYearBoundary && (
                   <span
-                    className="text-[10px] font-bold mb-0.5 px-1 rounded"
+                    className="text-[8px] font-bold mb-0.5 px-1 rounded leading-none"
                     style={{ color: "#ff7640" }}
                   >
                     {year}
@@ -82,8 +82,8 @@ export function EmiTimeline({ emis }: { emis: EMI[] }) {
                 )}
                 {/* Month label */}
                 <span
-                  className={`text-[10px] leading-none ${
-                    isYearBoundary ? "font-semibold text-foreground" : "text-muted-foreground"
+                  className={`text-[8px] leading-none ${
+                    isYearBoundary ? "font-bold text-foreground" : "text-muted-foreground"
                   }`}
                 >
                   {label}

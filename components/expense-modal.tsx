@@ -20,11 +20,13 @@ export function ExpenseModal() {
     const formData = new FormData(e.currentTarget)
     
     try {
+      const rawDate = formData.get("date") as string
       await createExpense({
         description: formData.get("description") as string,
         amount: Number(formData.get("amount")),
         category: (formData.get("category") as string) || undefined,
-        date: formData.get("date") as string,
+        vendor_name: (formData.get("vendor_name") as string) || undefined,
+        date: rawDate ? rawDate : undefined,
       })
       setOpen(false)
     } catch (err: any) {
@@ -60,8 +62,12 @@ export function ExpenseModal() {
             <Input id="category" name="category" placeholder="e.g. Food" />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="date">Date</Label>
-            <Input id="date" name="date" type="date" required defaultValue={new Date().toISOString().split('T')[0]} />
+            <Label htmlFor="vendor_name">Vendor / Payee (Optional)</Label>
+            <Input id="vendor_name" name="vendor_name" placeholder="e.g. Amazon, Swiggy" />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="date">Date (Optional)</Label>
+            <Input id="date" name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} />
           </div>
           {error && <div className="text-sm text-red-500 font-medium">{error}</div>}
           <DialogFooter className="mt-4">

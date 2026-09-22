@@ -8,13 +8,16 @@ import { Label } from "@/components/ui/label"
 import { updateExpense } from "@/app/actions/expenses"
 import { formatINR } from "@/lib/format"
 import { Pencil } from "lucide-react"
+import { LenderAvatar } from "@/components/lender-avatar"
 
 type Expense = {
   id: string
   description: string
   amount: number
   category?: string
-  date: string
+  date?: string | null
+  vendor_name?: string | null
+  vendor_logo_domain?: string | null
 }
 
 function EditExpenseModal({ expense }: { expense: Expense }) {
@@ -27,13 +30,15 @@ function EditExpenseModal({ expense }: { expense: Expense }) {
     setLoading(true)
     setError("")
     const formData = new FormData(e.currentTarget)
+    const rawDate = formData.get("date") as string
     try {
       await updateExpense({
         id: expense.id,
         description: formData.get("description") as string,
         amount: Number(formData.get("amount")),
         category: (formData.get("category") as string) || undefined,
-        date: formData.get("date") as string,
+        vendor_name: (formData.get("vendor_name") as string) || undefined,
+        date: rawDate ? rawDate : undefined,
       })
       setOpen(false)
     } catch (err: unknown) {
@@ -78,8 +83,16 @@ function EditExpenseModal({ expense }: { expense: Expense }) {
             <Input id={`edit-exp-cat-${expense.id}`} name="category" defaultValue={expense.category ?? ""} placeholder="e.g. Food" className="dark:bg-white/5 dark:border-white/10" />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor={`edit-exp-date-${expense.id}`} className="text-sm font-medium">Date</Label>
-            <Input id={`edit-exp-date-${expense.id}`} name="date" type="date" required defaultValue={expense.date} className="dark:bg-white/5 dark:border-white/10" />
+            <Label htmlFor={`edit-exp-vendor-${expense.id}`} className="text-sm font-medium">
+              Vendor / Payee <span className="text-muted-foreground font-normal">(Optional)</span>
+            </Label>
+            <Input id={`edit-exp-vendor-${expense.id}`} name="vendor_name" defaultValue={expense.vendor_name ?? ""} placeholder="e.g. Amazon, Swiggy" className="dark:bg-white/5 dark:border-white/10" />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor={`edit-exp-date-${expense.id}`} className="text-sm font-medium">
+              Date <span className="text-muted-foreground font-normal">(Optional)</span>
+            </Label>
+            <Input id={`edit-exp-date-${expense.id}`} name="date" type="date" defaultValue={expense.date ?? ""} className="dark:bg-white/5 dark:border-white/10" />
           </div>
           {error && <div className="text-sm text-red-400 font-medium bg-red-500/10 px-3 py-2 rounded-lg">{error}</div>}
           <DialogFooter className="mt-2 gap-2">
@@ -110,8 +123,16 @@ export function ExpenseList({ expenses }: { expenses: Expense[] }) {
       {expenses.map((expense) => (
         <div key={expense.id} className="glass-card p-5 flex flex-col gap-3">
           {/* Header */}
-          <div className="flex items-start justify-between gap-2">
-            <p className="font-semibold text-sm leading-tight truncate">{expense.description}</p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <LenderAvatar lender_name={expense.vendor_name} lender_logo_domain={expense.vendor_logo_domain} />
+              <div className="min-w-0">
+                <p className="font-semibold text-sm leading-tight truncate">{expense.description}</p>
+                {expense.vendor_name && (
+                  <p className="text-xs text-muted-foreground truncate">{expense.vendor_name}</p>
+                )}
+              </div>
+            </div>
             <div className="flex items-center gap-1.5 shrink-0">
               {expense.category && (
                 <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide bg-white/8 text-muted-foreground">
@@ -126,13 +147,15 @@ export function ExpenseList({ expenses }: { expenses: Expense[] }) {
           <p className="text-2xl font-bold text-rose-400">{formatINR(expense.amount)}</p>
 
           {/* Date */}
-          <p className="text-xs text-muted-foreground border-t border-white/6 pt-3">
-            {new Date(expense.date).toLocaleDateString("en-IN", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </p>
+          {expense.date && (
+            <p className="text-xs text-muted-foreground border-t border-white/6 pt-3">
+              {new Date(expense.date).toLocaleDateString("en-IN", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </p>
+          )}
         </div>
       ))}
     </div>
