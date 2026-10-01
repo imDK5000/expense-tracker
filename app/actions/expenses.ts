@@ -11,6 +11,7 @@ export type CreateExpenseData = {
   date?: string | null
   vendor_name?: string | null
   vendor_logo_domain?: string | null
+  notes?: string | null
 }
 
 export type UpdateExpenseData = Partial<CreateExpenseData> & { id: string }

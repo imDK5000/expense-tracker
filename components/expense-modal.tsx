@@ -27,6 +27,7 @@ export function ExpenseModal() {
         category: (formData.get("category") as string) || undefined,
         vendor_name: (formData.get("vendor_name") as string) || undefined,
         date: rawDate ? rawDate : undefined,
+        notes: (formData.get("notes") as string) || undefined,
       })
       setOpen(false)
     } catch (err: any) {
@@ -67,7 +68,16 @@ export function ExpenseModal() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="date">Date (Optional)</Label>
-            <Input id="date" name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} />
+            <Input id="date" name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} className="dark:bg-white/5 dark:border-white/10" />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="notes">Notes (Optional)</Label>
+            <textarea 
+              id="notes" 
+              name="notes" 
+              placeholder="e.g. For project X"
+              className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-white/5 dark:border-white/10"
+            />
           </div>
           {error && <div className="text-sm text-red-500 font-medium">{error}</div>}
           <DialogFooter className="mt-4">

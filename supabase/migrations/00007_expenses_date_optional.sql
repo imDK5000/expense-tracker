@@ -1,0 +1,1 @@
+ALTER TABLE public.expenses ALTER COLUMN date DROP NOT NULL;

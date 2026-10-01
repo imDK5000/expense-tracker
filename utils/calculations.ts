@@ -32,9 +32,14 @@ export function calculateMonthlyOutgo(emis: EMI[], expenses: Expense[], targetDa
   // 2. Calculate Expense total for the current month
   let totalExpense = 0
   for (const expense of expenses) {
-    const expenseDate = new Date(expense.date)
-    if (expenseDate.getFullYear() === currentYear && expenseDate.getMonth() === currentMonth) {
+    if (!expense.date) {
+      // If no date is specified, treat it as a recurring/monthly expense
       totalExpense += Number(expense.amount)
+    } else {
+      const expenseDate = new Date(expense.date)
+      if (expenseDate.getFullYear() === currentYear && expenseDate.getMonth() === currentMonth) {
+        totalExpense += Number(expense.amount)
+      }
     }
   }
 

@@ -71,23 +71,16 @@ export function EmiTimeline({ emis }: { emis: EMI[] }) {
                 className="absolute flex flex-col items-center"
                 style={{ left: `${leftPct}%`, transform: "translateX(-50%)" }}
               >
-                {/* Year label — only when crossing into a new year */}
-                {isYearBoundary && (
-                  <span
-                    className="text-[8px] font-bold mb-0.5 px-1 rounded leading-none"
-                    style={{ color: "#ff7640" }}
-                  >
-                    {year}
-                  </span>
-                )}
                 {/* Month label */}
                 <span
-                  className={`text-[8px] leading-none ${
+                  className={`text-[8px] leading-none flex items-baseline gap-0.5 ${
                     isYearBoundary ? "font-bold text-foreground" : "text-muted-foreground"
                   }`}
                 >
-                  {label}
+                  <span>{label}</span>
+                  <span className="opacity-60 text-[7px]">'{year.toString().slice(-2)}</span>
                 </span>
+
                 {/* Tick mark */}
                 <div
                   className={`mt-0.5 w-px ${isYearBoundary ? "h-2.5 bg-white/30" : "h-1.5 bg-white/15"}`}

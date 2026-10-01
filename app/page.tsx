@@ -1,9 +1,12 @@
 import { getEMIs } from "@/app/actions/emi"
 import { getExpenses } from "@/app/actions/expenses"
+import { getReceivables } from "@/app/actions/receivables"
 import { EMIList } from "@/components/emi-list"
 import { EMIModal } from "@/components/emi-modal"
 import { ExpenseList } from "@/components/expense-list"
 import { ExpenseModal } from "@/components/expense-modal"
+import { ReceivableList } from "@/components/receivable-list"
+import { ReceivableModal } from "@/components/receivable-modal"
 import { DashboardSummary } from "@/components/dashboard-summary"
 import { EmiTimeline } from "@/components/emi-timeline"
 import { createClient } from "@/utils/supabase/server"
@@ -17,9 +20,10 @@ export default async function Home() {
     redirect('/login')
   }
 
-  const [emis, expenses] = await Promise.all([
+  const [emis, expenses, receivables] = await Promise.all([
     getEMIs(),
-    getExpenses()
+    getExpenses(),
+    getReceivables()
   ])
 
   return (
@@ -36,7 +40,7 @@ export default async function Home() {
       </div>
 
       {/* Summary */}
-      <DashboardSummary emis={emis as any[]} expenses={expenses as any[]} />
+      <DashboardSummary emis={emis as any[]} expenses={expenses as any[]} receivables={receivables as any[]} />
 
       {/* Timeline */}
       <section>
@@ -59,6 +63,15 @@ export default async function Home() {
           <ExpenseModal />
         </div>
         <ExpenseList expenses={expenses as any[]} />
+      </section>
+
+      {/* Receivables */}
+      <section className="space-y-4 pt-4 border-t border-white/8">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground">Money Owed to Me</h2>
+          <ReceivableModal />
+        </div>
+        <ReceivableList receivables={receivables as any[]} />
       </section>
     </main>
   )

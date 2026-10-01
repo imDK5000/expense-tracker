@@ -18,6 +18,7 @@ type EMI = {
   tenure_months: number
   lender_name?: string | null
   lender_logo_domain?: string | null
+  notes?: string | null
 }
 
 function calculateEndDateAndStatus(startDateStr: string, tenureMonths: number) {
@@ -49,6 +50,7 @@ function EditEMIModal({ emi }: { emi: EMI }) {
         start_date: formData.get("start_date") as string,
         tenure_months: Number(formData.get("tenure_months")),
         lender_name: (formData.get("lender_name") as string) || undefined,
+        notes: (formData.get("notes") as string) || undefined,
       })
       setOpen(false)
     } catch (err: unknown) {
@@ -99,6 +101,17 @@ function EditEMIModal({ emi }: { emi: EMI }) {
           <div className="grid gap-2">
             <Label htmlFor={`edit-emi-tenure-${emi.id}`} className="text-sm font-medium">Tenure (Months)</Label>
             <Input id={`edit-emi-tenure-${emi.id}`} name="tenure_months" type="number" required defaultValue={emi.tenure_months} className="dark:bg-white/5 dark:border-white/10" />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor={`edit-emi-notes-${emi.id}`} className="text-sm font-medium">
+              Notes <span className="text-muted-foreground font-normal">(Optional)</span>
+            </Label>
+            <textarea 
+              id={`edit-emi-notes-${emi.id}`} 
+              name="notes" 
+              defaultValue={emi.notes ?? ""}
+              className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-white/5 dark:border-white/10"
+            />
           </div>
           {error && <div className="text-sm text-red-400 font-medium bg-red-500/10 px-3 py-2 rounded-lg">{error}</div>}
           <DialogFooter className="mt-2 gap-2">
@@ -166,6 +179,11 @@ export function EMIList({ emis }: { emis: EMI[] }) {
             <div className="flex flex-col gap-1 text-xs text-muted-foreground border-t border-white/6 pt-3">
               <span>{emi.tenure_months} months · starts {emi.start_date}</span>
               <span>Ends {endDate}</span>
+              {emi.notes && (
+                <p className="italic opacity-80 mt-1 truncate" title={emi.notes}>
+                  "{emi.notes}"
+                </p>
+              )}
             </div>
           </div>
         )

@@ -18,6 +18,7 @@ type Expense = {
   date?: string | null
   vendor_name?: string | null
   vendor_logo_domain?: string | null
+  notes?: string | null
 }
 
 function EditExpenseModal({ expense }: { expense: Expense }) {
@@ -39,6 +40,7 @@ function EditExpenseModal({ expense }: { expense: Expense }) {
         category: (formData.get("category") as string) || undefined,
         vendor_name: (formData.get("vendor_name") as string) || undefined,
         date: rawDate ? rawDate : undefined,
+        notes: (formData.get("notes") as string) || undefined,
       })
       setOpen(false)
     } catch (err: unknown) {
@@ -94,6 +96,17 @@ function EditExpenseModal({ expense }: { expense: Expense }) {
             </Label>
             <Input id={`edit-exp-date-${expense.id}`} name="date" type="date" defaultValue={expense.date ?? ""} className="dark:bg-white/5 dark:border-white/10" />
           </div>
+          <div className="grid gap-2">
+            <Label htmlFor={`edit-exp-notes-${expense.id}`} className="text-sm font-medium">
+              Notes <span className="text-muted-foreground font-normal">(Optional)</span>
+            </Label>
+            <textarea 
+              id={`edit-exp-notes-${expense.id}`} 
+              name="notes" 
+              defaultValue={expense.notes ?? ""}
+              className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-white/5 dark:border-white/10"
+            />
+          </div>
           {error && <div className="text-sm text-red-400 font-medium bg-red-500/10 px-3 py-2 rounded-lg">{error}</div>}
           <DialogFooter className="mt-2 gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)} className="dark:border-white/10 dark:hover:bg-white/5">
@@ -146,16 +159,23 @@ export function ExpenseList({ expenses }: { expenses: Expense[] }) {
           {/* Amount */}
           <p className="text-2xl font-bold text-rose-400">{formatINR(expense.amount)}</p>
 
-          {/* Date */}
-          {expense.date && (
-            <p className="text-xs text-muted-foreground border-t border-white/6 pt-3">
-              {new Date(expense.date).toLocaleDateString("en-IN", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </p>
-          )}
+          {/* Date and Notes */}
+          <div className="flex flex-col gap-1 text-xs text-muted-foreground border-t border-white/6 pt-3 mt-auto">
+            {expense.date && (
+              <p>
+                {new Date(expense.date).toLocaleDateString("en-IN", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+            )}
+            {expense.notes && (
+              <p className="italic opacity-80 mt-1 truncate" title={expense.notes}>
+                "{expense.notes}"
+              </p>
+            )}
+          </div>
         </div>
       ))}
     </div>
