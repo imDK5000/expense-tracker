@@ -21,15 +21,41 @@ type EMI = {
   notes?: string | null
 }
 
-function calculateEndDateAndStatus(startDateStr: string, tenureMonths: number) {
+function calculateEMIStats(startDateStr: string, tenureMonths: number) {
   const startDate = new Date(startDateStr)
+  startDate.setDate(1) // normalise to start of month
   const endDate = new Date(startDate)
   endDate.setMonth(endDate.getMonth() + tenureMonths)
+
   const now = new Date()
+  now.setDate(1)
+
+  const nowAbs = now.getFullYear() * 12 + now.getMonth()
+  const startAbs = startDate.getFullYear() * 12 + startDate.getMonth()
+  const endAbs = endDate.getFullYear() * 12 + endDate.getMonth()
+
   let status = "Active"
-  if (now < startDate) status = "Upcoming"
-  else if (now > endDate) status = "Completed"
-  return { endDate: endDate.toISOString().split("T")[0], status }
+  if (nowAbs < startAbs) status = "Upcoming"
+  else if (nowAbs >= endAbs) status = "Completed"
+
+  const paid = status === "Completed"
+    ? tenureMonths
+    : status === "Upcoming"
+    ? 0
+    : Math.min(nowAbs - startAbs + 1, tenureMonths) // +1: current month counts
+
+  const remaining = Math.max(tenureMonths - paid, 0)
+  const progressPct = Math.round((paid / tenureMonths) * 100)
+  const monthsUntilStart = status === "Upcoming" ? startAbs - nowAbs : 0
+
+  return {
+    endDate: `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}`,
+    status,
+    paid,
+    remaining,
+    progressPct,
+    monthsUntilStart,
+  }
 }
 
 function EditEMIModal({ emi }: { emi: EMI }) {
@@ -140,7 +166,8 @@ export function EMIList({ emis }: { emis: EMI[] }) {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {emis.map((emi) => {
-        const { endDate, status } = calculateEndDateAndStatus(emi.start_date, emi.tenure_months)
+        const { endDate, status, paid, remaining, progressPct, monthsUntilStart } =
+          calculateEMIStats(emi.start_date, emi.tenure_months)
 
         return (
           <div key={emi.id} className="glass-card p-5 flex flex-col gap-3">
@@ -175,13 +202,43 @@ export function EMIList({ emis }: { emis: EMI[] }) {
               <span className="text-xs text-muted-foreground">/mo</span>
             </div>
 
+            {/* Remaining EMI progress */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between text-xs">
+                {status === "Completed" ? (
+                  <span className="text-muted-foreground">All {emi.tenure_months} payments done</span>
+                ) : status === "Upcoming" ? (
+                  <span className="text-muted-foreground">
+                    Starts in {monthsUntilStart} month{monthsUntilStart !== 1 ? "s" : ""}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">
+                    <span className="font-semibold text-foreground">{remaining}</span>
+                    {" "}of {emi.tenure_months} remaining
+                  </span>
+                )}
+                <span className="text-muted-foreground">{progressPct}%</span>
+              </div>
+              {/* Progress bar */}
+              <div className="h-1.5 rounded-full bg-white/8 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    status === "Completed"
+                      ? "bg-white/30"
+                      : "bg-gradient-to-r from-amber-600 to-amber-400"
+                  }`}
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+            </div>
+
             {/* Meta */}
             <div className="flex flex-col gap-1 text-xs text-muted-foreground border-t border-white/6 pt-3">
               <span>{emi.tenure_months} months · starts {emi.start_date}</span>
               <span>Ends {endDate}</span>
               {emi.notes && (
                 <p className="italic opacity-80 mt-1 truncate" title={emi.notes}>
-                  "{emi.notes}"
+                  &ldquo;{emi.notes}&rdquo;
                 </p>
               )}
             </div>
