@@ -23,40 +23,45 @@ type EMI = {
 
 function calculateEMIStats(startDateStr: string, tenureMonths: number) {
   const startDate = new Date(startDateStr)
-  startDate.setDate(1) // normalise to start of month
+  const paymentDay = startDate.getDate() // e.g. 5 if start is March 5
+
+  // End date: same day as start, tenure months later
   const endDate = new Date(startDate)
   endDate.setMonth(endDate.getMonth() + tenureMonths)
 
-  const now = new Date()
-  now.setDate(1)
+  const today = new Date()
 
-  const nowAbs = now.getFullYear() * 12 + now.getMonth()
-  const startAbs = startDate.getFullYear() * 12 + startDate.getMonth()
-  const endAbs = endDate.getFullYear() * 12 + endDate.getMonth()
-
+  // Status based on actual date comparison
   let status = "Active"
-  if (nowAbs < startAbs) status = "Upcoming"
-  else if (nowAbs >= endAbs) status = "Completed"
+  if (today < startDate) status = "Upcoming"
+  else if (today >= endDate) status = "Completed"
 
-  const paid = status === "Completed"
-    ? tenureMonths
-    : status === "Upcoming"
-    ? 0
-    : Math.min(nowAbs - startAbs + 1, tenureMonths) // +1: current month counts
+  // Paid count — only include current month if today >= payment day
+  let paid: number
+  if (status === "Completed") {
+    paid = tenureMonths
+  } else if (status === "Upcoming") {
+    paid = 0
+  } else {
+    const startAbs = startDate.getFullYear() * 12 + startDate.getMonth()
+    const todayAbs = today.getFullYear() * 12 + today.getMonth()
+    const elapsedMonths = todayAbs - startAbs
+    const currentMonthPaid = today.getDate() >= paymentDay ? 1 : 0
+    paid = Math.min(elapsedMonths + currentMonthPaid, tenureMonths)
+  }
 
   const remaining = Math.max(tenureMonths - paid, 0)
   const progressPct = Math.round((paid / tenureMonths) * 100)
-  const monthsUntilStart = status === "Upcoming" ? startAbs - nowAbs : 0
 
-  return {
-    endDate: `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}`,
-    status,
-    paid,
-    remaining,
-    progressPct,
-    monthsUntilStart,
-  }
+  const startAbs = startDate.getFullYear() * 12 + startDate.getMonth()
+  const todayAbs = today.getFullYear() * 12 + today.getMonth()
+  const monthsUntilStart = status === "Upcoming" ? startAbs - todayAbs : 0
+
+  const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, "0")}-${String(endDate.getDate()).padStart(2, "0")}`
+
+  return { endDate: endDateStr, status, paid, remaining, progressPct, monthsUntilStart }
 }
+
 
 function EditEMIModal({ emi }: { emi: EMI }) {
   const [open, setOpen] = useState(false)
