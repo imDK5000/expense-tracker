@@ -5,9 +5,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { updateReceivable } from "@/app/actions/receivables"
+import { updateReceivable, deleteReceivable } from "@/app/actions/receivables"
 import { formatINR } from "@/lib/format"
-import { Pencil, ExternalLink, CheckCircle2, Clock, MessageCircle } from "lucide-react"
+import { Pencil, ExternalLink, CheckCircle2, Clock, MessageCircle, Trash2 } from "lucide-react"
 
 type Receivable = {
   id: string
@@ -24,6 +24,8 @@ type Receivable = {
 function EditReceivableModal({ receivable }: { receivable: Receivable }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [error, setError] = useState("")
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -78,7 +80,7 @@ function EditReceivableModal({ receivable }: { receivable: Receivable }) {
           </div>
           <div className="grid gap-2">
             <Label htmlFor={`edit-rec-amount-${receivable.id}`} className="text-sm font-medium">Amount (₹)</Label>
-            <Input id={`edit-rec-amount-${receivable.id}`} name="amount" type="number" step="1" required defaultValue={receivable.amount} className="dark:bg-white/5 dark:border-white/10" />
+            <Input id={`edit-rec-amount-${receivable.id}`} name="amount" type="number" step="any" required defaultValue={receivable.amount} className="dark:bg-white/5 dark:border-white/10" />
           </div>
           <div className="grid gap-2">
             <Label htmlFor={`edit-rec-type-${receivable.id}`} className="text-sm font-medium">Type</Label>
@@ -120,7 +122,49 @@ function EditReceivableModal({ receivable }: { receivable: Receivable }) {
             />
           </div>
           {error && <div className="text-sm text-red-400 font-medium bg-red-500/10 px-3 py-2 rounded-lg">{error}</div>}
-          <DialogFooter className="mt-2 gap-2">
+          <DialogFooter className="mt-2 gap-2 flex-col sm:flex-row">
+            {confirmDelete ? (
+              <div className="flex items-center gap-2 w-full sm:mr-auto">
+                <span className="text-sm text-red-400">Delete this receivable?</span>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={deleting}
+                  className="h-8 px-3 text-xs bg-red-600 hover:bg-red-700"
+                  onClick={async () => {
+                    setDeleting(true)
+                    try {
+                      await deleteReceivable(receivable.id)
+                      setOpen(false)
+                    } catch {
+                      setError("Failed to delete receivable")
+                      setDeleting(false)
+                      setConfirmDelete(false)
+                    }
+                  }}
+                >
+                  {deleting ? "Deleting..." : "Yes, delete"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-8 px-3 text-xs dark:border-white/10 dark:hover:bg-white/5"
+                  onClick={() => setConfirmDelete(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-8 px-3 text-xs text-red-400 border-red-500/30 hover:bg-red-500/10 hover:text-red-300 sm:mr-auto"
+                onClick={() => setConfirmDelete(true)}
+              >
+                <Trash2 size={13} className="mr-1" />
+                Delete
+              </Button>
+            )}
             <Button type="button" variant="outline" onClick={() => setOpen(false)} className="dark:border-white/10 dark:hover:bg-white/5">
               Cancel
             </Button>
